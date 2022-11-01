@@ -17,6 +17,21 @@ this file and include it in basic-server.js so that it actually works.
 // probably need to export this file and use require in basic-server.js to allow this to work
 //var requestHandler
 //var exports = module.exports = {};
+
+// data array variable
+var storage = [];
+//
+// // variable for json test message
+var testJSON = {
+  text: 'text',
+  username: 'username',
+  roomname: 'roomname'
+}
+
+storage.push(testJSON);
+
+var qs = require('querystring');
+
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -52,23 +67,37 @@ var requestHandler = function(request, response) {
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
 
-  // data array variable
-  var data = [];
-  //
-  // variable for json test message
-  var testJSON = {
-    text: 'text',
-    username: 'username',
-    roomname: 'roomname'
-  }
-  //data.push(JSON.stringify(testJSON));
-  data.push(testJSON);
-  data = JSON.stringify(data);
+  // GET METHOD
   if (request.method === 'GET' && request.url.includes('classes/messages')) {
     response.writeHead(200, headers)
-    response.end(data);
+    response.end(JSON.stringify(storage));
+  } else if (request.method === 'POST' && request.url.includes('classes/messages')) {
+    // POST METHOD
+    response.writeHead(201, headers);
+    var body;
+    request.on('data', (data) => {
+      // turn buffer data into actual data object
+      body = data;
+      // if our data is an object
+    });
+    request.on('end', () => {
+      var buf = Buffer.from(body);
+      var dataObj = JSON.parse(buf);
+
+      if (typeof dataObj === 'object') {
+        // add it to the front of our storage array
+        storage.unshift(dataObj);
+        // else if its not
+      } else {
+        // transform it
+        storage.unshift(JSON.parse(dataObj));
+      }
+    })
+    response.end(JSON.stringify(storage));
+  } else {
+    response.writeHead(404, headers);
+    response.end();
   }
-  //response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -77,7 +106,6 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  //response.end('Hello, World!');
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
