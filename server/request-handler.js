@@ -15,8 +15,9 @@ this file and include it in basic-server.js so that it actually works.
 // Notes:
 // probably do something with module.exports like in lecture
 // probably need to export this file and use require in basic-server.js to allow this to work
-
-module.exports = function(request, response) {
+//var requestHandler
+//var exports = module.exports = {};
+var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -31,6 +32,8 @@ module.exports = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
+
+  // server: `http://127.0.0.1:3000/classes/messages`
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
@@ -43,11 +46,29 @@ module.exports = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'text/plain';
+  // 'application/json',
+  headers['Content-Type'] = 'application/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+
+  // data array variable
+  var data = [];
+  //
+  // variable for json test message
+  var testJSON = {
+    text: 'text',
+    username: 'username',
+    roomname: 'roomname'
+  }
+  //data.push(JSON.stringify(testJSON));
+  data.push(testJSON);
+  data = JSON.stringify(data);
+  if (request.method === 'GET' && request.url.includes('classes/messages')) {
+    response.writeHead(200, headers)
+    response.end(data);
+  }
+  //response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -56,7 +77,7 @@ module.exports = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  //response.end('Hello, World!');
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -75,3 +96,4 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
+exports.requestHandler = requestHandler;
