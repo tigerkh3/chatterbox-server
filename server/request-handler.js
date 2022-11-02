@@ -20,12 +20,14 @@ this file and include it in basic-server.js so that it actually works.
 
 // data array variable
 var storage = [];
+// create id variable
 //
 // // variable for json test message
 var testJSON = {
-  text: 'text',
+  message_id: 0,
   username: 'username',
-  roomname: 'roomname'
+  text: 'text',
+  roomname: 'lobby'
 }
 
 storage.push(testJSON);
@@ -86,13 +88,21 @@ var requestHandler = function(request, response) {
 
       if (typeof dataObj === 'object') {
         // add it to the front of our storage array
+        dataObj.message_id = storage.length
         storage.unshift(dataObj);
         // else if its not
       } else {
         // transform it
-        storage.unshift(JSON.parse(dataObj));
+        var temp = JSON.parse(dataObj);
+        temp.message_id = storage.length;
+        storage.unshift(temp);
       }
+      // we need to send back our update data
+      //
+      response.end(JSON.stringify(storage));
     })
+  } else if (request.method === 'OPTIONS' && request.url.includes('classes/messages')) {
+    response.writeHead(200, headers)
     response.end(JSON.stringify(storage));
   } else {
     response.writeHead(404, headers);
