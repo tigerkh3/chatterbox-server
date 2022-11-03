@@ -91,4 +91,84 @@ describe('Node Server Request Listener Function', function() {
     expect(res._ended).to.equal(true);
   });
 
+  it('Should respond with messages that were previously posted with JSON string type', function() {
+    var stubMsg = {
+      username: 'Jono',
+      text: 'Do my bidding!'
+    };
+    var req = new stubs.request('/classes/messages', 'POST', JSON.stringify(stubMsg));
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(201);
+
+    // Now if we request the log for that room the message we posted should be there:
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    var messages = JSON.parse(res._data);
+    expect(messages.length).to.be.above(0);
+    expect(messages[0].username).to.equal('Jono');
+    expect(messages[0].text).to.equal('Do my bidding!');
+    expect(res._ended).to.equal(true);
+  });
+
+  it('Should respond with more than one message that were previously posted with JSON string type', function() {
+    var message1 = {
+      username: 'Jono',
+      text: 'Do my bidding!'
+    };
+
+    var message2 = {
+      username: 'JonoII',
+      text: 'Do my bidding again!'
+    }
+
+
+    var req = new stubs.request('/classes/messages', 'POST', JSON.stringify(message1));
+    var res = new stubs.response();
+
+    // call 1
+    handler.requestHandler(req, res);
+
+    req = new stubs.request('/classes/messages', 'POST', JSON.stringify(message2));
+    res = new stubs.response();
+
+    // call 2
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(201);
+
+    // Now if we request the log for that room the message we posted should be there:
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    var messages = JSON.parse(res._data);
+    expect(messages.length).to.be.above(0);
+    expect(messages[1].username).to.equal('Jono');
+    expect(messages[1].text).to.equal('Do my bidding!');
+    expect(messages[0].username).to.equal('JonoII');
+    expect(messages[0].text).to.equal('Do my bidding again!');
+    expect(res._ended).to.equal(true);
+
+  });
+
+  it('Should answer OPTIONS requests for /classes/messages with a 200 status code', function() {
+
+    var req = new stubs.request('/classes/messages', 'OPTIONS');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    expect(res._ended).to.equal(true);
+  });
+
 });
